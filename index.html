@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jessica’s Valentine Puzzle</title>
+  <style>
+    :root {
+      --bg1: #0b1020;
+      --bg2: #1a0f1f;
+      --card: rgba(255,255,255,0.08);
+      --text: #f7f7fb;
+      --muted: rgba(247,247,251,0.75);
+      --accent: #ff4d8d;
+      --accent2: #ffb3c8;
+      --good: #33d17a;
+      --bad: #ff6b6b;
+      --shadow: 0 18px 50px rgba(0,0,0,0.45);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 10% 0%, rgba(255,77,141,0.25), transparent 55%),
+        radial-gradient(900px 600px at 90% 20%, rgba(255,179,200,0.18), transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow-x: hidden;
+    }
+
+    .wrap { width: min(920px, 100%); display: grid; gap: 16px; }
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 18px;
+    }
+    .header { display: grid; gap: 10px; padding: 22px; text-align: center; }
+    .title { font-size: clamp(24px, 3.4vw, 40px); line-height: 1.1; margin: 0; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 15px; }
+
+    .pillrow { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 13px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 99px; display: inline-block; background: rgba(255,255,255,0.25); }
+    .dot.on { background: var(--good); }
+
+    .grid { display: grid; gap: 16px; }
+    @media (min-width: 820px) { .grid { grid-template-columns: 1.05fr 0.95fr; } }
+
+    .panelTitle { margin: 0 0 6px 0; font-size: 16px; }
+    .hint { margin: 0 0 14px 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+
+    .step {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .step:before {
+      content: "";
+      position: absolute;
+      inset: -120px -120px auto auto;
+      width: 220px; height: 220px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,77,141,0.22), transparent 62%);
+      transform: rotate(12deg);
+    }
+    .stepRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 1; }
+    .label { font-weight: 650; font-size: 14px; }
+    .small { color: var(--muted); font-size: 12.5px; margin: 0; position: relative; z-index: 1; }
+
+    .inputRow { display: flex; gap: 10px; position: relative; z-index: 1; flex-wrap: wrap; }
+    input[type="text"] {
+      flex: 1 1 220px;
+      min-width: 200px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(10,10,14,0.35);
+      color: var(--text);
+      outline: none;
+    }
+    input[type="text"]::placeholder { color: rgba(247,247,251,0.45); }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      border-radius: 14px;
+      padding: 11px 14px;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      color: #0b1020;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 12px 30px rgba(255,77,141,0.22);
+      transition: transform 0.08s ease, filter 0.2s ease;
+      user-select: none;
+      white-space: nowrap;
+    }
+    button:active { transform: translateY(1px) scale(0.99); }
+    button.secondary {
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      box-shadow: none;
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    button.good {
+      background: linear-gradient(135deg, rgba(51,209,122,1), rgba(170,255,205,1));
+      box-shadow: 0 12px 30px rgba(51,209,122,0.18);
+    }
+
+    .status { font-size: 13px; color: var(--muted); margin: 0; }
+    .status.ok { color: rgba(51,209,122,0.95); }
+    .status.no { color: rgba(255,107,107,0.95); }
+
+    .side { display: grid; gap: 12px; align-content: start; }
+
+    .bigLock {
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      text-align: center;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .bigLock:before {
+      content: "";
+      position: absolute;
+      inset: -180px auto auto -180px;
+      width: 360px; height: 360px;
+      background: radial-gradient(circle at 60% 60%, rgba(255,179,200,0.20), transparent 62%);
+    }
+    .lockIcon {
+      width: 74px; height: 74px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      position: relative;
+      z-index: 1;
+      font-size: 34px;
+    }
+    .progress { display: grid; gap: 10px; position: relative; z-index: 1; width: min(420px, 100%); margin: 0 auto; }
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.14);
+      overflow: hidden;
+    }
+    .fill { height: 100%; width: 0%; border-radius: 999px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.35s ease; }
+
+    .unlockArea { display: none; position: relative; overflow: hidden; padding: 24px; text-align: center; gap: 14px; }
+    .unlockArea.show { display: grid; }
+
+    .question { font-size: clamp(22px, 4vw, 44px); margin: 0; line-height: 1.05; }
+
+    .heart {
+      width: 86px; height: 86px; margin: 0 auto; position: relative;
+      filter: drop-shadow(0 18px 30px rgba(255,77,141,0.24));
+    }
+    .heart:before, .heart:after {
+      content: "";
+      position: absolute;
+      width: 44px; height: 66px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 44px 44px 0 0;
+      top: 18px; left: 22px;
+      transform: rotate(-45deg);
+      transform-origin: 0 100%;
+    }
+    .heart:after {
+      left: 20px;
+      transform: rotate(45deg);
+      transform-origin: 100% 100%;
+    }
+
+    .btnRow { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 6px; position: relative; }
+    .floatingNo { position: relative; touch-action: manipulation; }
+
+    .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; display: none; }
+    .confetti.show { display: block; }
+    .piece { position: absolute; top: -10px; width: 10px; height: 14px; border-radius: 3px; opacity: 0.9; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(520deg); opacity: 1; } }
+
+    .footer { text-align: center; color: var(--muted); font-size: 12.5px; padding: 10px 6px 0; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="card header">
+      <h1 class="title">🔐 Jessica’s Tiny Valentine Puzzle</h1>
+      <p class="subtitle">Solve 3 clues to unlock the final question 💗</p>
+      <div class="pillrow">
+        <span class="pill"><span class="dot" id="dot1"></span> Clue 1</span>
+        <span class="pill"><span class="dot" id="dot2"></span> Clue 2</span>
+        <span class="pill"><span class="dot" id="dot3"></span> Clue 3</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2 class="panelTitle">Clues</h2>
+        <p class="hint">Type each answer and hit <b>Check</b>. (All answers are simple.)</p>
+
+        <!-- CLUE 1 -->
+        <div class="step" id="step1">
+          <div class="stepRow">
+            <div>
+              <div class="label">Clue 1: Count the hearts</div>
+              <p class="small">How many hearts are in this line? <span aria-label="hearts">❤ ❤ ❤ ❤</span></p>
+            </div>
+          </div>
+          <div class="inputRow">
+            <input id="a1" type="text" inputmode="numeric" placeholder="Answer (number)" autocomplete="off" />
+            <button id="b1">Check</button>
+          </div>
+          <p class="status" id="s1"></p>
+        </div>
+
+        <!-- CLUE 2 -->
+        <div class="step" id="step2">
+          <div class="stepRow">
+            <div>
+              <div class="label">Clue 2: A sweet anagram</div>
+              <p class="small">Unscramble: <b>EVOL</b></p>
+            </div>
+          </div>
+          <div class="inputRow">
+            <input id="a2" type="text" placeholder="Answer (word)" autocomplete="off" />
+            <button id="b2">Check</button>
+          </div>
+          <p class="status" id="s2"></p>
+        </div>
+
+        <!-- CLUE 3 -->
+        <div class="step" id="step3">
+          <div class="stepRow">
+            <div>
+              <div class="label">Clue 3: The final key</div>
+              <p class="small">Fill in: “Be my ___”</p>
+            </div>
+          </div>
+          <div class="inputRow">
+            <input id="a3" type="text" placeholder="Answer (word)" autocomplete="off" />
+            <button id="b3">Check</button>
+          </div>
+          <p class="status" id="s3"></p>
+        </div>
+
+        <div class="footer">
+          Tip: Want it more personal? Replace Clue 2 with an inside joke word (and update the answer in the script).
+        </div>
+      </div>
+
+      <aside class="card side">
+        <div class="bigLock" id="lockPanel">
+          <div class="lockIcon" aria-hidden="true">🔒</div>
+          <h2 class="panelTitle" style="margin:0; font-size:18px;">Locked</h2>
+          <p class="hint" style="margin:0;">Solve all 3 clues to unlock the question.</p>
+
+          <div class="progress">
+            <div class="bar"><div class="fill" id="fill"></div></div>
+            <p class="status" id="progressText">0 / 3 solved</p>
+          </div>
+
+          <div class="inputRow" style="justify-content:center;">
+            <button class="secondary" id="resetBtn" title="Reset puzzle">Reset</button>
+          </div>
+        </div>
+
+        <div class="unlockArea" id="unlockArea">
+          <div class="heart" aria-hidden="true"></div>
+          <h2 class="question">Jessica… will you be my Valentine? 💖</h2>
+          <p class="hint" style="margin:0;">Choose wisely 😄</p>
+
+          <div class="btnRow" id="btnRow">
+            <button class="good" id="yesBtn">Yes!</button>
+            <button class="secondary floatingNo" id="noBtn">No</button>
+          </div>
+
+          <p class="status" id="finalStatus" style="min-height: 20px;"></p>
+        </div>
+      </aside>
+    </section>
+  </div>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+
+  <script>
+    // Customize the "Yes" message here
+    const YES_MESSAGE = "YES!! 💘 Jessica, you just made my whole day. Happy Valentine’s!";
+
+    // Puzzle answers (case-insensitive)
+    const ANSWERS = {
+      a1: "4",
+      a2: "LOVE",
+      a3: "VALENTINE",
+    };
+
+    const state = { solved: [false, false, false] };
+    const el = (id) => document.getElementById(id);
+
+    const dots = [el("dot1"), el("dot2"), el("dot3")];
+    const fill = el("fill");
+    const progressText = el("progressText");
+    const unlockArea = el("unlockArea");
+    const lockPanel = el("lockPanel");
+    const finalStatus = el("finalStatus");
+    const confetti = el("confetti");
+
+    function norm(s) {
+      return (s ?? "").toString().trim().toUpperCase();
+    }
+
+    function updateUI() {
+      const solvedCount = state.solved.filter(Boolean).length;
+
+      dots.forEach((d, i) => d.className = "dot " + (state.solved[i] ? "on" : ""));
+      fill.style.width = ((solvedCount / 3) * 100).toFixed(0) + "%";
+      progressText.textContent = `${solvedCount} / 3 solved`;
+
+      if (solvedCount === 3) {
+        lockPanel.classList.add("hidden");
+        unlockArea.classList.add("show");
+        popConfetti(60);
+      } else {
+        lockPanel.classList.remove("hidden");
+        unlockArea.classList.remove("show");
+      }
+    }
+
+    function setStatus(stepIdx, ok, msg) {
+      const s = el(`s${stepIdx}`);
+      s.textContent = msg;
+      s.className = "status " + (ok ? "ok" : "no");
+    }
+
+    function check(stepIdx, inputId, answerKey) {
+      const user = norm(el(inputId).value);
+      const correct = norm(ANSWERS[answerKey]);
+
+      if (!user) {
+        setStatus(stepIdx, false, "Type an answer first 🙂");
+        return;
+      }
+      if (user === correct) {
+        state.solved[stepIdx - 1] = true;
+        setStatus(stepIdx, true, "Correct! ✅");
+        el(inputId).setAttribute("disabled", "disabled");
+        el(`b${stepIdx}`).setAttribute("disabled", "disabled");
+        updateUI();
+      } else {
+        setStatus(stepIdx, false, "Not quite — try again 💭");
+      }
+    }
+
+    // Wire up checks
+    el("b1").addEventListener("click", () => check(1, "a1", "a1"));
+    el("b2").addEventListener("click", () => check(2, "a2", "a2"));
+    el("b3").addEventListener("click", () => check(3, "a3", "a3"));
+
+    // Enter key submits for each input
+    ["a1","a2","a3"].forEach((id, idx) => {
+      el(id).addEventListener("keydown", (e) => {
+        if (e.key === "Enter") el(`b${idx+1}`).click();
+      });
+    });
+
+    // Reset
+    el("resetBtn").addEventListener("click", () => {
+      state.solved = [false, false, false];
+      ["a1","a2","a3"].forEach((id, idx) => {
+        el(id).removeAttribute("disabled");
+        el(id).value = "";
+        el(`b${idx+1}`).removeAttribute("disabled");
+        el(`s${idx+1}`).textContent = "";
+        el(`s${idx+1}`).className = "status";
+      });
+      finalStatus.textContent = "";
+      updateUI();
+    });
+
+    // Final buttons
+    el("yesBtn").addEventListener("click", () => {
+      finalStatus.textContent = YES_MESSAGE;
+      finalStatus.className = "status ok";
+      popConfetti(120);
+    });
+
+    // Make the "No" button dodge
+    const noBtn = el("noBtn");
+    const btnRow = el("btnRow");
+
+    function dodge() {
+      const rowRect = btnRow.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+      const padding = 8;
+
+      const maxX = Math.max(padding, rowRect.width - btnRect.width - padding);
+      const maxY = 70;
+
+      const x = Math.floor(Math.random() * maxX);
+      const y = Math.floor(Math.random() * maxY) - 10;
+
+      noBtn.style.transform = `translate(${x}px, ${y}px)`;
+    }
+
+    ["mouseenter", "focus", "touchstart"].forEach(evt => {
+      noBtn.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dodge();
+      }, { passive: false });
+    });
+
+    // Confetti
+    function popConfetti(count) {
+      confetti.innerHTML = "";
+      confetti.classList.add("show");
+
+      const colors = [
+        "rgba(255,77,141,0.95)",
+        "rgba(255,179,200,0.95)",
+        "rgba(255,255,255,0.9)",
+        "rgba(51,209,122,0.9)"
+      ];
+
+      const w = window.innerWidth;
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement("div");
+        p.className = "piece";
+        p.style.left = Math.floor(Math.random() * w) + "px";
+        p.style.background = colors[Math.floor(Math.random() * colors.length)];
+        p.style.animationDuration = (2.2 + Math.random() * 1.8).toFixed(2) + "s";
+        p.style.animationDelay = (Math.random() * 0.25).toFixed(2) + "s";
+        confetti.appendChild(p);
+      }
+
+      setTimeout(() => confetti.classList.remove("show"), 3800);
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>
